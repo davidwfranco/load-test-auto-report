@@ -322,6 +322,7 @@ def main():
       # getDataRespTime(begin_time, end_time)
 
       plotCharts(datesTest, dataRPM, dataRespTime, dataError)
-      # createReport(begin_time, end_time, reqNames, datesTest)
+      
+      createReport(begin_time, end_time, reqNames, datesTest)
 
 main()
