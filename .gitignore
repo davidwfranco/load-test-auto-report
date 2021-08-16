@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# vscode folder
+.vs/
+auto_report_env/
