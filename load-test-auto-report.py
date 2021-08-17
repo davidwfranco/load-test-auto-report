@@ -6,9 +6,15 @@ from datetime import datetime
 import argparse
 import reportGenerator as rg
 import plotCharts
+import calendar, time
 
 from_zone = tz.gettz('UTC')
 to_zone = tz.gettz('America/Sao_Paulo')
+
+def getEpoch(dateTime):
+      return (calendar.timegm(
+                  time.strptime(dateTime, '%Y-%m-%d %H:%M:%S')
+            ) + (3600 * 3)) * 1000
 
 def getReqNames(client, begin_time, end_time):
       query = ("SELECT distinct(transaction) as transac_name" +
@@ -146,47 +152,62 @@ def getDataError(client, begin_time, end_time):
 
       return dictError
 
-def main(host='localhost', port=8086, database='load_tests'):
-      begin_time = "1628199538000";
-      end_time = "1628200760000";
+def main(hostname, port, database, beginT, endT):
+      begin_time = str(getEpoch(beginT))
+      end_time = str(getEpoch(endT))
 
-      client = InfluxDBClient(host=host, port=port, database=database)
+      client = InfluxDBClient(host=hostname, port=port, database=database)
 
       reqNames = getReqNames(client, begin_time, end_time)
-      # getReqNames(begin_time, end_time)
-            
-      datesTest = getIniEndTest(client, begin_time, end_time)
-      # getIniEndTest(begin_time, end_time)
-
-      dataRPM = getDataRPM(client, begin_time, end_time)
-      # getDataRPM(begin_time, end_time)
-
-      dataRespTime = getDataRespTime(client, begin_time, end_time)
-      # getDataRespTime(begin_time, end_time)
-
-      dataError = getDataError(client, begin_time, end_time)
-      # getDataRespTime(begin_time, end_time)
-
-      plotCharts.plot(datesTest, dataRPM, dataRespTime, dataError)
+      # getReqNames(client, begin_time, end_time)
       
-      rg.createReport(reqNames, datesTest)
+      # datesTest = getIniEndTest(client, begin_time, end_time)
+      # # getIniEndTest(client, begin_time, end_time)
+
+      # dataRPM = getDataRPM(client, begin_time, end_time)
+      # # getDataRPM(client, begin_time, end_time)
+
+      # dataRespTime = getDataRespTime(client, begin_time, end_time)
+      # # getDataRespTime(client, begin_time, end_time)
+
+      # dataError = getDataError(client, begin_time, end_time)
+      # # getDataRespTime(client, begin_time, end_time)
+
+      # plotCharts.plot(datesTest, dataRPM, dataRespTime, dataError)
+      
+      # rg.createReport(reqNames, datesTest)
 
 
 def parse_args():
       """Parse the args."""
       parser = argparse.ArgumentParser(
             description='A load test report creator')
-      parser.add_argument('--host', type=str, required=False,
-                        default='localhost',
-                        help='hostname of InfluxDB http API', dest='host')
-      parser.add_argument('--port', type=int, required=False, default=8086,
-                        help='port of InfluxDB http API')
-      parser.add_argument('--db', type=str, required=False, 
-                        default='load_tests',
-                        help='InfluxDB database to be queried')
+      parser.add_argument('--host', dest='hostname',
+                  type=str, required=True,
+                  default='localhost',
+                  help='hostname of InfluxDB http API')
+      parser.add_argument('--port', dest='port',
+                  type=int, required=True, default=8086,
+                  help='port of InfluxDB http API')
+      parser.add_argument('--db', dest='database',
+                  type=str, required=True, 
+                  default='load_tests',
+                  help='InfluxDB database to be queried')
+      parser.add_argument('--begin', dest='beginT', metavar="'BEGIN_TIME'",
+                  type=str, required=True,
+                  help='begin of the test (yyyy-mm-dd hh24:mi:ss)')
+      parser.add_argument('--end', dest='endT', metavar="'END_TIME'",
+                  type=str, required=True, default=8086,
+                  help='end of the test (yyyy-mm-dd hh24:mi:ss)')
       return parser.parse_args()
 
 
 if __name__ == '__main__':
       args = parse_args()
-      main(host=args.host, port=args.port, database=args.db)
+      main(
+            hostname=args.hostname, 
+            port=args.port, 
+            database=args.database, 
+            beginT=args.beginT, 
+            endT=args.endT
+      )
